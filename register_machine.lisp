@@ -21,12 +21,15 @@
 ;; The symbol (- 1 2 3) represents the instruction r1- -> l2 l3
 ;; The symbol halt represents the instruction halt
 
+(defmacro unpack(tup vals expr)
+    `(apply #'(lambda ,vals ,expr) ,tup))
+
 (defun command-encode(cmd)
     (if (eq cmd 'halt)
         0
         (if (eq (car cmd) '+)
-            (apply #'(lambda (reg n) (pair-encode (* 2 reg) n)) (cdr cmd))            
-            (apply #'(lambda (reg j k) (pair-encode (+ (* 2 reg) 1) (- (pair-encode j k) 1))) (cdr cmd)))))
+            (unpack (cdr cmd) (reg n) (pair-encode (* 2 reg) n))
+            (unpack (cdr cmd) (reg j k) (pair-encode (+ (* 2 reg) 1) (- (pair-encode j k) 1))))))
     
 (defun command-decode(code)
     (if (= code 0)
@@ -42,4 +45,3 @@
 
 (defun program-decode(code)
     (map 'list #' command-decode code))
-
