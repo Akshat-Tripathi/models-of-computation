@@ -36,9 +36,9 @@
         'halt
         (multiple-value-bind (x y) (pair-decode code)
             (if (= (mod x 2) 0)
-                `('+ ,(/ x 2) ,y)
+                `(+ ,(/ x 2) ,y)
                 (multiple-value-bind (j k) (pair-decode (+ y 1)) 
-                    `('- ,(/ (- x 1) 2) ,j ,k))))))
+                    `(- ,(/ (- x 1) 2) ,j ,k))))))
 
 (defun program-encode(program)
     (list-encode (map 'list #' command-encode program)))
