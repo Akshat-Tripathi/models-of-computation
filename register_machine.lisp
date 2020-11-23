@@ -16,3 +16,23 @@
         nil
         (multiple-value-bind (x xs) (pair-decode n) 
             (cons x (list-decode xs)))))
+
+;; The symbol (+ 1 2) represents the instruction r1+ -> l2
+;; The symbol (- 1 2 3) represents the instruction r1- -> l2 l3
+;; The symbol halt represents the instruction halt
+
+(defun command-encode(cmd)
+    (if (eq cmd 'halt)
+        0
+        (if (eq (car cmd) '+)
+            (apply #'(lambda (reg n) (pair-encode (* 2 reg) n)) (cdr cmd))            
+            (apply #'(lambda (reg j k) (pair-encode (+ (* 2 reg) 1) (- (pair-encode j k) 1))) (cdr cmd)))))
+    
+(defun command-decode(code)
+    (if (= code 0)
+        'halt
+        (multiple-value-bind (x y) (pair-decode code)
+            (if (= (mod x 2) 0)
+                `('+ ,(/ x 2) ,y)
+                (multiple-value-bind (j k) (pair-decode (+ y 1)) 
+                    `('- ,(/ (- x 1) 2) ,j ,k))))))
