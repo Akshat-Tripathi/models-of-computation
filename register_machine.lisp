@@ -36,3 +36,10 @@
                 `('+ ,(/ x 2) ,y)
                 (multiple-value-bind (j k) (pair-decode (+ y 1)) 
                     `('- ,(/ (- x 1) 2) ,j ,k))))))
+
+(defun program-encode(program)
+    (map 'list #' command-encode program))
+
+(defun program-decode(code)
+    (map 'list #' command-decode code))
+
