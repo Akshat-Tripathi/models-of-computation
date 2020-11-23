@@ -41,7 +41,7 @@
                     `('- ,(/ (- x 1) 2) ,j ,k))))))
 
 (defun program-encode(program)
-    (map 'list #' command-encode program))
+    (list-encode (map 'list #' command-encode program)))
 
 (defun program-decode(code)
-    (map 'list #' command-decode code))
+    (map 'list #' command-decode (list-decode code)))
