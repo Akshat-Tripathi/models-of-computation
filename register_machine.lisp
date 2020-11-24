@@ -65,6 +65,9 @@
             (reg n))
         (nth n regs)))
 
+(defun init-regs(l)
+    )
+
 (defmacro change(reg n to x)
     `(let ((reg (reg ,n)))
         (setf (nth ,n regs) ,x)))
@@ -77,15 +80,18 @@
 
 ;; Program execution
 
-(defun program-execute(cmd-index cmds)
+(defun program-execute(cmds)
+    (program-execute-helper 0 cmds))
+
+(defun program-execute-helper(cmd-index cmds)
     (let ((cmd (nth cmd-index cmds)))
         (if (eq cmd nil)
             (reg 0)
             (switch-cmd cmd (lambda () 0)
-                            (lambda (reg next) (inc reg) (program-execute next cmds))
+                            (lambda (reg next) (inc reg) (program-execute-helper next cmds))
                             (lambda (r next1 next2) (if (= (reg r) 0)
-                                                            (program-execute next2 cmds)
-                                                            (progn (dec r) (program-execute next1 cmds))))))))
+                                                            (program-execute-helper next2 cmds)
+                                                            (progn (dec r) (program-execute-helper next1 cmds))))))))
 
 (defvar prog (program-encode '(
     (+ 0 1)
@@ -102,5 +108,5 @@
 )))
 
 
-(program-execute 0 (program-decode add))
+(program-execute (program-decode add))
 (print regs)
