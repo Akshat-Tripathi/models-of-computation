@@ -45,3 +45,34 @@
 
 (defun program-decode(code)
     (map 'list #' command-decode (list-decode code)))
+
+;; Register management functions
+;; Registers will be an infinite list, lazily loaded
+
+(defvar regs nil)
+(defvar n-regs 0)
+
+(defun reg(n)
+    (if (>= n n-regs)
+        (progn 
+            (setq n-regs (+ n-regs 1))
+            (setq regs (append regs '(0)))
+            (reg n))
+        (nth n regs)))
+
+(defmacro change(reg n to x)
+    `(let ((reg (reg ,n)))
+        (setf (nth ,n regs) ,x)))
+
+(defun inc(n)
+    (change reg n to (+ (reg n) 1)))
+
+(defun dec(n)
+    (change reg n to (- (reg n) 1)))
+
+(print regs)
+(inc 5)
+(inc 3)
+(inc 1)
+(inc 3)
+(print regs)
