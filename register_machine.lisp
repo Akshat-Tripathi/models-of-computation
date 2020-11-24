@@ -65,12 +65,17 @@
             (reg n))
         (nth n regs)))
 
-(defun init-regs(l)
-    )
-
 (defmacro change(reg n to x)
     `(let ((reg (reg ,n)))
         (setf (nth ,n regs) ,x)))
+
+(defun init-regs(l)
+    (init-regs-helper l 0))
+
+(defun init-regs-helper(l i)
+    (if (null l)
+        nil
+        (progn (change reg i to (car l)) (init-regs-helper (cdr l) (+ i 1)))))
 
 (defun inc(n)
     (change reg n to (+ (reg n) 1)))
