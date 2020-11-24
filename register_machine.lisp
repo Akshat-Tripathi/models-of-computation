@@ -19,21 +19,26 @@
 
 ;; The symbol (+ 1 2) represents the instruction r1+ -> l2
 ;; The symbol (- 1 2 3) represents the instruction r1- -> l2 l3
-;; The symbol halt represents the instruction halt
+;; The symbol hlt represents the instruction hlt
 
-(defmacro unpack(tup vals expr)
-    `(apply #'(lambda ,vals ,expr) ,tup))
+(defmacro unpack(tup args expr)
+    `(apply #'(lambda ,args ,expr) ,tup))
+
+(defmacro switch-cmd(cmd hlt inc dec)
+    `(unpack ,cmd (op &optional src next1 next2)
+        (case op
+            (hlt (,hlt))
+            (+ (,inc src next1))
+            (- (,dec src next1 next2)))))
 
 (defun command-encode(cmd)
-    (if (eq cmd 'halt)
-        0
-        (if (eq (car cmd) '+)
-            (unpack (cdr cmd) (reg n) (pair-encode (* 2 reg) n))
-            (unpack (cdr cmd) (reg j k) (pair-encode (+ (* 2 reg) 1) (- (pair-encode j k) 1))))))
+    (switch-cmd cmd (lambda () 0)
+                    (lambda (reg n) (pair-encode (* 2 reg) n))
+                    (lambda (reg j k) (pair-encode (+ (* 2 reg) 1) (- (pair-encode j k) 1)))))
     
 (defun command-decode(code)
     (if (= code 0)
-        'halt
+        '(hlt)
         (multiple-value-bind (x y) (pair-decode code)
             (if (= (mod x 2) 0)
                 `(+ ,(/ x 2) ,y)
@@ -70,9 +75,32 @@
 (defun dec(n)
     (change reg n to (- (reg n) 1)))
 
-(print regs)
-(inc 5)
-(inc 3)
-(inc 1)
-(inc 3)
+;; Program execution
+
+(defun program-execute(cmd-index cmds)
+    (let ((cmd (nth cmd-index cmds)))
+        (if (eq cmd nil)
+            (reg 0)
+            (switch-cmd cmd (lambda () 0)
+                            (lambda (reg next) (inc reg) (program-execute next cmds))
+                            (lambda (r next1 next2) (if (= (reg r) 0)
+                                                            (program-execute next2 cmds)
+                                                            (progn (dec r) (program-execute next1 cmds))))))))
+
+(defvar prog (program-encode '(
+    (+ 0 1)
+    (+ 0 2)
+    (hlt)
+)))
+
+(defvar add (program-encode '(
+    (- 1 1 2)
+    (+ 0 0)
+    (- 2 3 4)
+    (+ 0 2)
+    (hlt)
+)))
+
+
+(program-execute 0 (program-decode add))
 (print regs)
