@@ -4,7 +4,7 @@
 (defun pair-decode(z)
     (do ((x 0 (+ x 1))
          (y z (/ y 2)))
-        ((/= (mod y 2) 0) (values x (/ (- y 1) 2)))))
+        ((oddp y) (values x (/ (- y 1) 2)))))
 
 (defun list-encode(l)
     (if (null l) 
@@ -40,7 +40,7 @@
     (if (= code 0)
         '(hlt)
         (multiple-value-bind (x y) (pair-decode code)
-            (if (= (mod x 2) 0)
+            (if (evenp x)
                 `(+ ,(/ x 2) ,y)
                 (multiple-value-bind (j k) (pair-decode (+ y 1)) 
                     `(- ,(/ (- x 1) 2) ,j ,k))))))
@@ -98,6 +98,24 @@
                                                             (program-execute-helper next2 cmds)
                                                             (progn (dec r) (program-execute-helper next1 cmds))))))))
 
+;; Program graphical representation
+
+(defun draw(program)
+    (defvar x 0)
+    (defvar exits '())
+    (defvar graph-string 
+        (reduce #'(lambda (a b) (concatenate 'string a b))
+        (map 'list #' (lambda (cmd) (format nil (concatenate 'string "~D" 
+            (switch-cmd cmd (lambda () (progn (setq exits (cons x exits)) "[label=HALT, shape=circle];"))
+                            (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~D->~D;" reg x next))
+                            (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~D->~D;~D->~D[arrowhead=vee];" reg x next1 x next2))
+        ))
+         (- (setq x (inc x)) 1))) program)))
+    (concatenate 'string "digraph G {subgraph cluster_0 {" (concatenate 'string graph-string 
+        (format nil "}entry->0;~A}" (reduce #'(lambda (a b) (concatenate 'string a b))
+                                        (map 'list (lambda (x) (format nil "~D->exit;" x)) exits))))))
+
+
 (defvar prog (program-encode '(
     (+ 0 1)
     (+ 0 2)
@@ -111,7 +129,4 @@
     (+ 0 2)
     (hlt)
 )))
-
-
-(program-execute (program-decode add))
-(print regs)
+(princ (draw (program-decode add)))
