@@ -106,14 +106,13 @@
     (defvar graph-string 
         (reduce #'(lambda (a b) (concatenate 'string a b))
         (map 'list #' (lambda (cmd) (format nil (concatenate 'string "~D" 
-            (switch-cmd cmd (lambda () (progn (setq exits (cons x exits)) "[label=HALT, shape=circle];"))
+            (switch-cmd cmd (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;" x))) "[label=HALT, shape=circle];"))
                             (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~D->~D;" reg x next))
                             (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~D->~D;~D->~D[arrowhead=vee];" reg x next1 x next2))
         ))
          (- (setq x (inc x)) 1))) program)))
     (concatenate 'string "digraph G {subgraph cluster_0 {" (concatenate 'string graph-string 
-        (format nil "}entry->0;~A}" (reduce #'(lambda (a b) (concatenate 'string a b))
-                                        (map 'list (lambda (x) (format nil "~D->exit;" x)) exits))))))
+        (format nil "}entry->0;~A}" exits))))
 
 
 (defvar prog (program-encode '(
