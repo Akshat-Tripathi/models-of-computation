@@ -92,11 +92,12 @@
     (let ((cmd (nth cmd-index cmds)))
         (if (eq cmd nil)
             (reg 0)
-            (switch-cmd cmd (lambda () 0)
-                            (lambda (reg next) (inc reg) (program-execute-helper next cmds))
-                            (lambda (r next1 next2) (if (= (reg r) 0)
-                                                            (program-execute-helper next2 cmds)
-                                                            (progn (dec r) (program-execute-helper next1 cmds))))))))
+            (switch-cmd cmd 
+                (lambda () 0)            
+                (lambda (reg next) (inc reg) (program-execute-helper next cmds))
+                (lambda (r next1 next2) (if (= (reg r) 0)
+                                            (program-execute-helper next2 cmds)
+                                            (progn (dec r) (program-execute-helper next1 cmds))))))))
 
 ;; Program graphical representation
 
@@ -106,13 +107,12 @@
     (defvar graph-string 
         (reduce #'(lambda (a b) (concatenate 'string a b))
         (map 'list #' (lambda (cmd) (format nil (concatenate 'string "~D" 
-            (switch-cmd cmd (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;" x))) "[label=HALT, shape=circle];"))
-                            (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~D->~D;" reg x next))
-                            (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~D->~D;~D->~D[arrowhead=vee];" reg x next1 x next2))
-        ))
-         (- (setq x (inc x)) 1))) program)))
-    (concatenate 'string "digraph G {subgraph cluster_0 {" (concatenate 'string graph-string 
-        (format nil "}entry->0;~A}" exits))))
+            (switch-cmd cmd 
+                (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;" x))) "[label=HALT, shape=circle];"))
+                (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~D->~D;" reg x next))
+                (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~D->~D;~D->~D[arrowhead=vee];" reg x next1 x next2))))
+            (- (setq x (inc x)) 1))) program)))
+    (format nil "digraph G {subgraph cluster_0 {~A}entry->0;~A}" graph-string exits))
 
 
 (defvar prog (program-encode '(
