@@ -106,14 +106,43 @@
     (defvar exits '())
     (defvar graph-string 
         (reduce #'(lambda (a b) (concatenate 'string a b))
-        (map 'list #' (lambda (cmd) (format nil (concatenate 'string "~D" 
+        (map 'list #'(lambda (cmd) (format nil (concatenate 'string "~D" 
             (switch-cmd cmd 
-                (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;" x))) "[label=HALT, shape=circle];"))
-                (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~D->~D;" reg x next))
-                (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~D->~D;~D->~D[arrowhead=vee];" reg x next1 x next2))))
+                (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;~%" x))) "[label=HALT, shape=circle];~%"))
+                (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~%~D->~D;~%" reg x next))
+                (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~%~D->~D;~%~D->~D[arrowhead=vee];~%" reg x next1 x next2))))
             (- (setq x (inc x)) 1))) program)))
-    (format nil "digraph G {subgraph cluster_0 {~A}entry->0;~A}" graph-string exits))
+    (format nil "digraph G {~%subgraph cluster_0 {~A}~%entry->0;~A}" graph-string exits))
 
+;; Program compression
+;; Given a program, all unreached code will be removed
+
+(defun simplify(program)
+    (setq old-to-new (make-hash-table))
+    (defun map-new-positions(i counter)
+        (if (gethash i old-to-new)
+            nil
+            (progn (setf (gethash i old-to-new) counter)
+            (cons i (switch-cmd (nth i program)
+                        (lambda () nil)
+                        (lambda (_ next) (map-new-positions next (inc counter)))
+                        (lambda (_ next1 next2) (progn (map-new-positions next1 (inc counter))
+                                                       (map-new-positions next2 (+ counter 2)))))))))
+    (map-new-positions 0 0)
+    ;; old-to-new now contains a mapping between the old positions of instructions to their new positions
+    (defvar max (list-length program))
+    (defun simplify-helper(i)
+        (if (> i max) (return-from simplify-helper nil))
+        (if (gethash i old-to-new)
+            (cons (switch-cmd (nth i program)
+                (lambda () '(hlt))
+                (lambda (reg next) `(+ ,reg ,(gethash next old-to-new)))
+                (lambda (reg next1 next2) `(- ,reg ,(gethash next1 old-to-new)
+                                                   ,(gethash next2 old-to-new))))
+                (simplify-helper (+ 1 i)))
+            (simplify-helper (+ 1 i))))
+    (simplify-helper 0)
+)
 
 (defvar prog (program-encode '(
     (+ 0 1)
@@ -128,4 +157,3 @@
     (+ 0 2)
     (hlt)
 )))
-(princ (draw (program-decode add)))
