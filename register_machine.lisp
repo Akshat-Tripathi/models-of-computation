@@ -110,7 +110,7 @@
                     (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;~%" x))) "[label=HALT, shape=circle];~%"))
                     (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~%~D->~D;~%" reg x next))
                     (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~%~D->~D;~%~D->~D[arrowhead=vee];~%" reg x next1 x next2))))
-                                                (- (incf x) 1))) program)) exits)))
+            (- (incf x) 1))) program)) (if exits exits "exit;"))))
 
 ;; Program compression
 ;; Given a program, all unreached code will be removed
