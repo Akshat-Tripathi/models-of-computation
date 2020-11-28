@@ -102,17 +102,15 @@
 ;; Program graphical representation
 
 (defun draw(program)
-    (defvar x 0)
-    (defvar exits '())
-    (defvar graph-string 
-        (reduce #'(lambda (a b) (concatenate 'string a b))
-        (map 'list #'(lambda (cmd) (format nil (concatenate 'string "~D" 
-            (switch-cmd cmd 
-                (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;~%" x))) "[label=HALT, shape=circle];~%"))
-                (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~%~D->~D;~%" reg x next))
-                (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~%~D->~D;~%~D->~D[arrowhead=vee];~%" reg x next1 x next2))))
-            (- (setq x (inc x)) 1))) program)))
-    (format nil "digraph G {~%subgraph cluster_0 {~A}~%entry->0;~A}" graph-string exits))
+    (let ((x 0)
+         (exits '()))
+        (format nil "digraph G {~%subgraph cluster_0 {~A}~%entry->0;~A}" (reduce #'(lambda (a b) (concatenate 'string a b))
+            (map 'list #'(lambda (cmd) (format nil (concatenate 'string "~D" 
+                (switch-cmd cmd 
+                    (lambda () (progn (setq exits (concatenate 'string exits (format nil "~D->exit;~%" x))) "[label=HALT, shape=circle];~%"))
+                    (lambda (reg next) (format nil "[label=\"R~D+\", shape=circle];~%~D->~D;~%" reg x next))
+                    (lambda (reg next1 next2) (format nil "[label=\"R~D-\", shape=circle];~%~D->~D;~%~D->~D[arrowhead=vee];~%" reg x next1 x next2))))
+                                                (- (incf x) 1))) program)) exits)))
 
 ;; Program compression
 ;; Given a program, all unreached code will be removed
@@ -130,9 +128,8 @@
                                                        (map-new-positions next2 (+ counter 2)))))))))
     (map-new-positions 0 0)
     ;; old-to-new now contains a mapping between the old positions of instructions to their new positions
-    (defvar max (list-length program))
     (defun simplify-helper(i)
-        (if (> i max) (return-from simplify-helper nil))
+        (if (> i (list-length program)) (return-from simplify-helper nil))
         (if (gethash i old-to-new)
             (cons (switch-cmd (nth i program)
                 (lambda () '(hlt))
@@ -157,3 +154,5 @@
     (+ 0 2)
     (hlt)
 )))
+
+(princ (draw (simplify (program-decode 45234))))
