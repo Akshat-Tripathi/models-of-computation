@@ -1,0 +1,6 @@
+#Commands will look like this:
+    #1. Rx+ -> Ly;
+    #2. Rx- -> Ly, Lz;
+    #3. Halt;
+
+print((lambda a:lambda cmds, i, ctx:a(a, cmds, i, ctx))(lambda exec_program, cmds, i, ctx: ctx if cmds[i] == ("halt",) else exec_program(exec_program, cmds, *(lambda cmd, ctx: {"inc": (lambda reg, next, ctx: (next, {k:v for (k, v) in (list(ctx.items()) + list({reg: ctx.setdefault(reg, 0) + 1}.items()))})),"dec": (lambda reg, next1, next2, ctx: (next2, ctx) if ctx.setdefault(reg, 0) == 0 else (next1, {k:v for (k, v) in (list(ctx.items()) + list({reg: ctx[reg] - 1}.items()))}))}[cmd[0]](*(cmd[1:] + (ctx,))))(cmds[i], ctx)))(list(map(lambda cmd: ("halt",) if cmd == "halt" else (lambda cmd: ("inc",) + tuple(map(int, cmd.replace("+", "", 1).split("->"))) if "+" in cmd else ("dec",) + tuple(map(int, cmd.replace(" ", "").lower().replace("-", "", 2).replace(">", ",", 1).split(","))))(cmd.replace("r", "", 1).replace("l", "")), input("Enter code here: ").split(";"))), 0, (lambda s: {i:int(s[i]) for i in range(len(s))})(input("Enter the initial configuration (delimited by spaces) ").split(" "))))
