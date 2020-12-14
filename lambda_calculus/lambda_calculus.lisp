@@ -14,17 +14,23 @@
 (defun split-dot(l)
   (split-dot-helper l '()))
 
+;;Use this to pattern match expressions
+(defmacro switch-expr(expr abs var app)
+  `(match ,expr
+          ((list* 'λ exp) ,abs)
+          ((guard exp (= 1 (length exp))) ,var)
+          (_ ,app)))
+
+
 ;;Finds all the free variables in an expression
 (defun fv(expr)
-  (match expr
-         ((list* 'λ exp) (multiple-value-bind (args e) (split-dot exp)
-                                         (set-difference (fv e) args)))
-         ((guard exp (= 1 (length exp))) exp)
-         (_ expr)))
+  (switch-expr expr
+               (multiple-value-bind (args e) (split-dot exp)
+                                    (set-difference (fv e) args))
+               exp
+               expr))
 
 
 (defparameter true '(λ x y \. x))
 (defparameter v '(x))
-
-
 (print (fv '(x y z)))
