@@ -6,31 +6,47 @@
 ;; 2. Abstractions i.e. λ x . x
 ;; 3. Applications i.e. M M
 
+(defun make-λ(args expr)
+  (append (cons 'λ args) (cons '\. expr)))
+
 (defun split-dot-helper(l start)
   (match l
          ((cons '\. rest) (values start rest))
          ((cons x y) (split-dot-helper y (cons x start)))))
 
 (defun split-dot(l)
-  (split-dot-helper l '()))
+  (split-dot-helper l (list)))
 
 ;;Use this to pattern match expressions
-(defmacro switch-expr(expr abs var app)
+(defmacro switch-expr(expr var abs app)
   `(match ,expr
-          ((list* 'λ exp) ,abs)
-          ((guard exp (= 1 (length exp))) ,var)
-          (_ ,app)))
-
+           ((cons expr nil) ,var)
+           ((cons 'λ _) (multiple-value-bind (args exp) (split-dot (cdr ,expr)) ,abs))
+           ((cons _ _) ,app)
+           (_ ,var)))
 
 ;;Finds all the free variables in an expression
 (defun fv(expr)
   (switch-expr expr
-               (multiple-value-bind (args e) (split-dot exp)
-                                    (set-difference (fv e) args))
-               exp
-               expr))
+               expr
+               (set-difference (fv exp) args)
+               (remove-duplicates (map 'list #'fv expr))))
 
+;;TODO alpha equivalence
 
-(defparameter true '(λ x y \. x))
-(defparameter v '(x))
-(print (fv '(x y z)))
+;;Substitution
+(defvar symbol-bank '(nil a b c d e f g h i j k l m n o p)) ;TODO replace this with an infinite list of integers
+(defun get-symbol()
+  (setf symbol-bank (cdr symbol-bank))
+  (car symbol-bank))
+
+(defun sub(expr old new)
+  (switch-expr expr
+               (if (eq old expr) new expr)
+               (cond
+                 ((member old args) expr)
+                 ((member new args) (let ((r (get-symbol)))
+                                      (sub (make-λ (substitute r new args)
+                                                   (sub exp new r)) old new)))
+                 (t (make-λ (substitute new old args) (sub exp old new))))
+               (map 'list (lambda (e) (sub e old new)) expr)))
