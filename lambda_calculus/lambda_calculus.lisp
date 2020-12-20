@@ -12,7 +12,7 @@
 (defun split-dot-helper(l start)
   (match l
          ((cons '\. rest) (values start rest))
-         ((cons x y) (split-dot-helper y (cons x start)))))
+         ((cons x y) (split-dot-helper y (nconc start (list x))))))
 
 (defun split-dot(l)
   (split-dot-helper l (list)))
@@ -32,6 +32,12 @@
                (set-difference (fv exp) args)
                (remove-duplicates (map 'list #'fv expr))))
 
+(defun member-fv(item expr)
+  (let ((free (fv expr)))
+    (match free
+           ((cons _ _) (member item free))
+           (_ (eq item free)))))
+
 ;;TODO alpha equivalence
 
 ;;Substitution
@@ -43,10 +49,12 @@
 (defun sub(expr old new)
   (switch-expr expr
                (if (eq old expr) new expr)
-               (cond
-                 ((member old args) expr)
-                 ((member new args) (let ((r (get-symbol)))
-                                      (sub (make-λ (substitute r new args)
-                                                   (sub exp new r)) old new)))
-                 (t (make-λ (substitute new old args) (sub exp old new))))
+               (if (member old args)
+                 expr
+                 (let* ((old* (remove-if-not (lambda (x) (member-fv x (fv new))) args))
+                        (new* (map 'list (lambda (x) (list x (get-symbol))) old*)))
+                   (make-λ (reduce (lambda (a b) (sub a (car b) (cadr b))) (cons args new*))
+                       (sub (reduce (lambda (a b) (sub a (car b) (cadr b))) (cons exp new*))
+                            old
+                            new))))
                (map 'list (lambda (e) (sub e old new)) expr)))
