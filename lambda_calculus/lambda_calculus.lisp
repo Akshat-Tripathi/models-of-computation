@@ -27,32 +27,29 @@
 
 ;;Finds all the free variables in an expression
 (defun fv(expr)
-  (switch-expr expr
+  (let ((free (switch-expr expr
                expr
                (set-difference (fv exp) args)
-               (remove-duplicates (map 'list #'fv expr))))
-
-(defun member-fv(item expr)
-  (let ((free (fv expr)))
+               (remove-duplicates (map 'list #'fv expr)))))
     (match free
-           ((cons _ _) (member item free))
-           (_ (eq item free)))))
+           ((cons _ _) free)
+           (_ (list free)))))
 
 ;;TODO alpha equivalence
 
 ;;Substitution
-(defvar symbol-bank '(nil a b c d e f g h i j k l m n o p)) ;TODO replace this with an infinite list of integers
-(defun get-symbol()
-  (setf symbol-bank (cdr symbol-bank))
-  (car symbol-bank))
+(defvar symbol-bank '(a b c d e f g h i j k l m n o p q r s u v w x y z))
+(defun get-symbol(taken-symbols)
+  (car (remove-if (lambda (s) (member s taken-symbols)) symbol-bank)))
 
 (defun sub(expr old new)
   (switch-expr expr
                (if (eq old expr) new expr)
                (if (member old args)
                  expr
-                 (let* ((old* (remove-if-not (lambda (x) (member-fv x (fv new))) args))
-                        (new* (map 'list (lambda (x) (list x (get-symbol))) old*)))
+                 (let* ((fvn (fv new))
+                        (old* (remove-if-not (lambda (x) (member x fvn)) args))
+                        (new* (map 'list (lambda (x) (list x (get-symbol (append fvn (fv exp))))) old*)))
                    (make-λ (reduce (lambda (a b) (sub a (car b) (cadr b))) (cons args new*))
                        (sub (reduce (lambda (a b) (sub a (car b) (cadr b))) (cons exp new*))
                             old
