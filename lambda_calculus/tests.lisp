@@ -1,4 +1,4 @@
-(load "lambda_calculus.lisp")
+(load "core.lisp")
 
 (defun parse(expr)
   (switch-expr expr
@@ -12,7 +12,7 @@
                  (prin1 "app")
                  (parse (cdr expr)))))
 
-(defvar abstraction '(λ x y \. x y z))
+(defparameter abstraction '(λ x \. λ y \. x y z))
 (defvar app '(x y z))
 (defvar var1 '(x))
 (defvar var2 'x)
@@ -37,3 +37,11 @@
 (print (sub app 'z 'i))
 (print (sub var1 'x 'i))
 (print (sub var2 'x 'i))
+
+;;Engine tests
+(load "engine.lisp")
+(defparameter redex
+  '((λ x \. (λ y \. x y z)) a b))
+
+(print (is-redex redex))
+(print (is-redex app))
