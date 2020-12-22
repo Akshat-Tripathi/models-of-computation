@@ -24,4 +24,17 @@
 
 (defconstant kons
   (args-to-λ '(e l c n) '(c e l)))
+
 ;;Integers
+(defconstant zero
+  (args-to-λ '(s z) 'z))
+
+(defconstant succ
+  (args-to-λ '(n f z) (cons 'f (list (to-app 'n 'f 'z)))))
+
+(defun encode-nat(n)
+  (labels ((f(n nat)
+             (if (zerop n)
+               nat
+               (f (- n 1) (list (to-app 'f nat))))))
+          (args-to-λ '(f z) (f n 'z))))
