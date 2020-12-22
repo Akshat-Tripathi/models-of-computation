@@ -3,14 +3,13 @@
 ;;Pairs
 ;; (a, b) -> λp. a b
 
-(defun pair(a b)
-  (to-λ 'p (list 'p a b)))
+(defconstant pair
+  (to-λ 'a (to-λ 'b (to-λ 'p '(p a b)))))
 
-(defun fst()
+(defconstant fst
   (to-λ 'p (cons 'p (list (to-λ 'a (to-λ 'b '(a)))))))
 
-(defun snd()
+(defconstant snd
   (to-λ 'p (cons 'p (list (to-λ 'a (to-λ 'b '(b)))))))
 
-(defparameter test-pair (pair 'a 'b))
-(defparameter test-fst (list (snd) test-pair))
+;;Integers
