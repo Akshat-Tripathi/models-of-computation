@@ -3,14 +3,17 @@
 
 ;; 3 types of expression
 ;; 1. Variables i.e. x
-;; 2. Abstractions i.e. lam x . x
+;; 2. Abstractions i.e. λ x . x
 ;; 3. Applications i.e. M M
 
-(defun to-lam(arg expr)
-  (cons 'lam (cons arg (cons '\. expr))))
+(defun to-λ(arg expr)
+  (cons 'λ (cons arg (cons '\. expr))))
 
-(defun from-lam(lam)
-  (values (cadr lam) (cdddr lam)))
+(defun from-λ(λ)
+  (values (cadr λ) (cdddr λ)))
+
+(defun to-app(&rest exprs)
+  exprs)
 
 ;;Use this to pattern match expressions
 (defmacro switch-expr(expr var abs app)
@@ -20,13 +23,13 @@
      expr))
  `(let ((expr (debracket ,expr)))
    (match expr
-          ((cons 'lam _) (multiple-value-bind (arg exp) (from-lam expr) ,abs))
+          ((cons 'λ _) (multiple-value-bind (arg exp) (from-λ expr) ,abs))
           ((cons _ _) ,app)
           (_ ,var))))
 
 (defun print-expr-helper(expr in-abs)
  (if (and (listp expr) (null (cdr expr)))
-  (progn (print "debracket") (format nil "(~a)" (print-expr-helper (car expr) in-abs)))
+  (format nil "(~a)" (print-expr-helper (car expr) in-abs))
   (switch-expr expr
                (format nil "~a" (string-downcase (symbol-name expr)))
                (format nil (if in-abs "(λ~a.~a)" "λ~a.~a") (string-downcase (symbol-name arg)) (print-expr-helper exp t))
@@ -60,6 +63,6 @@
                  (let ((fvn (fv new)))
                   (if (member arg fvn)
                       (let ((z (get-symbol (append fvn (fv exp)))))
-                        (to-lam z (sub (sub exp arg z) old new)))
-                      (to-lam arg (sub exp old new)))))
+                        (to-λ z (sub (sub exp arg z) old new)))
+                      (to-λ arg (sub exp old new)))))
                (map 'list (lambda (e) (sub e old new)) expr)))

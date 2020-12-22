@@ -1,0 +1,43 @@
+; compiling (LOAD "core.lisp")To load "trivia":
+  Load 1 ASDF system:
+    trivia
+; Loading "trivia"
+Switching to the BALLAND2006 optimizer
+
+; compiling (DEFUN TUPLE ...)
+
+; file: C:/Users/Akshat/AppData/Local/Temp/slime3
+; in: DEFUN TUPLE
+;     (MAP 'LIST
+;          (LAMBDA (S)
+;            (IF (EQ S 'P)
+;                "TODO error"
+;                S)
+;            VALS))
+;
+; caught WARNING:
+;   The function MAP is called with two arguments, but wants at least three.
+;
+; compilation unit finished
+;   caught 1 WARNING condition
+; compiling (DEFUN TUPLE ...)
+CL-USER> (tuple 'a 'b)
+
+(LAM P |.| P A B)
+
+CL-USER> (print-expr (tuple 'a 'b))
+"Î»p.p a b"
+; compiling (DEFUN PRINT-EXPR-HELPER ...)
+WARNING: redefining COMMON-LISP-USER::PRINT-EXPR-HELPER in DEFUN
+; compiling (DEFUN PRINT-EXPR ...)
+WARNING: redefining COMMON-LISP-USER::PRINT-EXPR in DEFUN
+
+CL-USER> (print-expr (tuple 'a 'b))
+"λp.p a b"
+
+CL-USER> (print-expr (tuple 'a 'b 'c 'd))
+"λp.p a b c d"
+
+CL-USER> (print-expr (tuple 'a 'b 'c 'p))
+
+CL-USER> 

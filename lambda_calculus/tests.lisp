@@ -1,7 +1,6 @@
-(load "core.lisp")
+(load "core.lisp" :external-format :utf-8)
 
 (defun parse(expr)
-  (print expr)
   (switch-expr expr
                (progn
                 (prin1 "var")
@@ -14,7 +13,7 @@
                  (parse (car expr))
                  (parse (cdr expr)))))
 
-(defparameter abstraction '(lam x \. lam y \. x y z))
+(defparameter abstraction '(λ x \. λ y \. x y z))
 (defvar app '(x y z))
 (defvar var1 '(x))
 (defvar var2 'x)
@@ -43,7 +42,7 @@
 ;;Engine tests
 ; (load "engine.lisp")
 ; (defparameter redex
-;   '((lam x \. lam y \. x y z) a b))
+;   '((λ x \. λ y \. x y z) a b))
 ;
 ; (print (is-redex redex))
 ; (print (is-redex app))
