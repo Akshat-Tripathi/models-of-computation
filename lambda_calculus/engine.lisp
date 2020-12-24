@@ -22,13 +22,19 @@
     (eval-redex (eval-1-redex expr))
     expr))
 
+(defmacro try-reduce(expr func body)
+  `(if (is-redex ,expr)
+     (,func (eval-redex ,expr))
+     ,body))
+
 (defun normal-order(expr)
-  (if (is-redex expr)
-    (normal-order (eval-redex expr))
-    (switch-expr expr
-                 expr
-                 (to-λ arg (normal-order exp))
-                 (map 'list #'normal-order expr))))
+  (try-reduce expr
+              normal-order
+              (switch-expr expr
+                           expr
+                           (to-λ arg (normal-order exp))
+                           (let ((mapped (map 'list #'normal-order expr)))
+                             (try-reduce mapped normal-order mapped)))))
 
 (defparameter complex-expr
   '(((λ x \. λ y \. x y x) t u) ((λ x \. λ y \. λ z \. x ((λ x \. x x) y)) v ((λ x \. x y) w))))
