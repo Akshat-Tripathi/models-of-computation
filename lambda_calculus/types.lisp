@@ -1,11 +1,5 @@
 (load "core.lisp" :external-format :utf-8)
 
-(defun args-to-λ(args expr)
-  (if (null args)
-    expr
-    (to-λ (car args) (args-to-λ (cdr args) expr))))
-
-
 ;;Pairs
 ;; (a, b) -> λp. a b
 
@@ -19,7 +13,7 @@
   (to-λ 'p (cons 'p (list (args-to-λ '(a b) '(b))))))
 
 ;;Lists
-(defconstant none
+(defconstant nil-λ
   (args-to-λ '(c n) '(n)))
 
 (defconstant cons-λ
@@ -32,6 +26,9 @@
 (defconstant succ
   (args-to-λ '(n f z) (cons 'f (list (to-app 'n 'f 'z)))))
 
+(defconstant add-λ
+  (args-to-λ '(a b f x) (list 'a 'f (list 'b 'f 'x))))
+
 (defun encode-nat(n)
   (labels ((f(n nat)
              (if (zerop n)
@@ -39,7 +36,7 @@
                (f (- n 1) (to-app 'f nat)))))
           (args-to-λ '(f z) (f n 'z))))
 
-;;booleans
+;;Booleans
 (defconstant true
   (args-to-λ '(x y) '(x)))
 

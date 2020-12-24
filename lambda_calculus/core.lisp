@@ -12,6 +12,13 @@
 (defun from-λ(λ)
   (values (cadr λ) (cdddr λ)))
 
+
+(defun args-to-λ(args expr)
+  (if (null args)
+    expr
+    (to-λ (car args) (args-to-λ (cdr args) expr))))
+
+
 (defun to-app(&rest exprs)
   exprs)
 
