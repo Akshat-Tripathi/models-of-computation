@@ -27,7 +27,10 @@
   (args-to-λ '(n f z) (cons 'f (list (to-app 'n 'f 'z)))))
 
 (defconstant add-λ
-  (args-to-λ '(a b f x) (list 'a 'f (list 'b 'f 'x))))
+  (args-to-λ '(a b f z) (list 'a 'f (list 'b 'f 'z))))
+
+(defconstant mult
+  (args-to-λ '(a b f) (list 'a (list 'b 'f))))
 
 (defun encode-nat(n)
   (labels ((f(n nat)
