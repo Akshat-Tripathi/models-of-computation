@@ -22,7 +22,7 @@
 (defconstant none
   (args-to-λ '(c n) '(n)))
 
-(defconstant kons
+(defconstant cons-λ
   (args-to-λ '(e l c n) '(c e l)))
 
 ;;Integers
@@ -38,3 +38,22 @@
                nat
                (f (- n 1) (to-app 'f nat)))))
           (args-to-λ '(f z) (f n 'z))))
+
+;;booleans
+(defconstant true
+  (args-to-λ '(x y) '(x)))
+
+(defconstant false
+  (args-to-λ '(x y) '(y)))
+
+(defconstant if-λ
+  (args-to-λ '(b x y) '(b x y)))
+
+(defconstant and-λ
+  (args-to-λ '(b1 b2) (list 'b1 'b2 false)))
+
+(defconstant or-λ
+  (args-to-λ '(b1 b2) (list 'b1 true 'b2)))
+
+(defconstant not-λ
+  (to-λ 'b (list 'b false true)))

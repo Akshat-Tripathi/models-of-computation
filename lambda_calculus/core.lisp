@@ -28,19 +28,20 @@
           (_ ,var))))
 
 (defun print-expr (expr)
-  (labels ((print-expr-helper(expr in-abs)
-                             (if (and (listp expr) (null (cdr expr)))
-                               (format nil "(~a)" (print-expr-helper (car expr) in-abs))
-                               (switch-expr expr
-                                            (format nil "~a" (string-downcase (symbol-name expr)))
-                                            (format nil (if in-abs
-                                                          "(λ~a.~a)"
-                                                          "λ~a.~a")
-                                                    (string-downcase (symbol-name arg)) (print-expr-helper exp t))
-                                            (format nil (if in-abs
-                                                          "~{~a~^ ~}"
-                                                          "(~{~a~^ ~})")
-                                                    (map 'list (lambda (expr) (print-expr-helper expr nil)) expr))))))
+  (labels
+   ((print-expr-helper(expr in-abs)
+                      (if (and (listp expr) (null (cdr expr)))
+                        (format nil "(~a)" (print-expr-helper (car expr) in-abs))
+                        (switch-expr expr
+                                     (format nil "~a" (string-downcase (symbol-name expr)))
+                                     (format nil (if in-abs
+                                                   "(λ~a.~a)"
+                                                   "λ~a.~a")
+                                             (string-downcase (symbol-name arg)) (print-expr-helper exp t))
+                                     (format nil (if in-abs
+                                                   "~{~a~^ ~}"
+                                                   "(~{~a~^ ~})")
+                                             (map 'list (lambda (expr) (print-expr-helper expr nil)) expr))))))
    (print-expr-helper expr nil)))
 
 ;;Finds all the free variables in an expression
