@@ -36,5 +36,5 @@
   (labels ((f(n nat)
              (if (zerop n)
                nat
-               (f (- n 1) (list (to-app 'f nat))))))
+               (f (- n 1) (to-app 'f nat)))))
           (args-to-λ '(f z) (f n 'z))))

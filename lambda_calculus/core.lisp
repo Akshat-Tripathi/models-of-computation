@@ -33,7 +33,7 @@
   (switch-expr expr
                (format nil "~a" (string-downcase (symbol-name expr)))
                (format nil (if in-abs "(λ~a.~a)" "λ~a.~a") (string-downcase (symbol-name arg)) (print-expr-helper exp t))
-               (format nil (if in-abs "~{~a~^ ~}" "(~{~a~^ ~})") (map 'list (lambda (expr) (print-expr-helper expr in-abs)) expr)))))
+               (format nil (if in-abs "~{~a~^ ~}" "(~{~a~^ ~})") (map 'list (lambda (expr) (print-expr-helper expr nil)) expr)))))
 
 (defun print-expr (expr)
   (print-expr-helper expr nil))
