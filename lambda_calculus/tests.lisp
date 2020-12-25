@@ -1,17 +1,22 @@
 (load "core.lisp" :external-format :utf-8)
 
 (defun parse(expr)
-  (switch-expr-dbrkt expr
-               (progn
-                (prin1 "var")
-                (terpri))
-               (progn
-                 (prin1 "abs")
-                 (parse exp))
-               (progn
-                 (prin1 "app")
-                 (parse (car expr))
-                 (parse (cdr expr)))))
+  (terpri)
+  (labels ((next(indent)
+                (format nil "--~a" indent))
+           (parse-helper(expr indent)
+                        (switch-expr-dbrkt expr
+                                           (format t "~avar ~a~%" indent expr)
+                                           (progn
+                                             (format t "~aabs ~a~%" indent expr)
+                                             (parse-helper (car exp) (next indent)))
+                                           (progn
+                                             (format t "~aapp ~a~%" indent expr)
+                                             (parse-helper (car expr) (next indent))
+                                             (parse-helper (cdr expr) (next indent))))))
+          (parse-helper expr "")))
+
+
 
 (defparameter abstraction '(λ x \. λ y \. x y z))
 (defvar app '(x y z))
