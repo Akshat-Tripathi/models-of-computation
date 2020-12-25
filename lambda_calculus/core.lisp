@@ -10,7 +10,7 @@
   (cons 'λ (cons arg (cons '\. expr))))
 
 (defun from-λ(λ)
-  (values (cadr λ) (cdddr λ)))
+  (values (cadr λ) (list (cdddr λ))))
 
 
 (defun args-to-λ(args expr)
@@ -23,37 +23,43 @@
   exprs)
 
 (defmacro switch-expr(expr var abs app)
-  `(match expr
+  `(match ,expr
          ((cons 'λ _) (multiple-value-bind (arg exp) (from-λ expr) ,abs))
          ((cons _ _) ,app)
          (_ ,var)))
 
+(defmacro switch-expr-restore-brkt(expr var abs app)
+  (defun debrkt-count(expr n)
+    (if (and (listp expr) (null (cdr expr)))
+      (debrkt-count (car expr) (incf n))
+      (values expr n)))
+  (defun restore-brkt(expr n)
+    (if (zerop n)
+      expr
+      (restore-brkt (list expr) (decf n))))
+  `(multiple-value-bind (expr n) (debrkt-count ,expr 0)
+                        (restore-brkt (switch-expr expr ,var ,abs ,app) n)))
 
 ;;Use this to pattern match expressions and remove brackets
 (defmacro switch-expr-dbrkt(expr var abs app)
- (defun debracket(expr)
+ (defun debrkt(expr)
    (if (and (listp expr) (null (cdr expr)))
-     (debracket (car expr))
+     (debrkt (car expr))
      expr))
- `(let ((expr (debracket ,expr)))
+ `(let ((expr (debrkt ,expr)))
    (switch-expr expr ,var ,abs ,app)))
 
 (defun print-expr (expr)
   (labels
    ((print-expr-helper(expr in-abs)
-                      (if (and (listp expr) (null (cdr expr)))
-                        (format nil "(~a)" (print-expr-helper (car expr) in-abs))
-                        (switch-expr-dbrkt expr
-                                     (format nil "~a" (string-downcase (symbol-name expr)))
-                                     (format nil (if in-abs
-                                                   "(λ~a.~a)"
-                                                   "λ~a.~a")
-                                             (string-downcase (symbol-name arg)) (print-expr-helper exp t))
-                                     (format nil (if in-abs
-                                                   "~{~a~^ ~}"
-                                                   "(~{~a~^ ~})")
-                                             (map 'list (lambda (expr) (print-expr-helper expr nil)) expr))))))
-   (print-expr-helper expr nil)))
+                      (format nil "~a" (switch-expr-restore-brkt expr
+                                                   (format nil "~a" (string-downcase (symbol-name expr)))
+                                                   (format nil "λ~a.~a" (string-downcase (symbol-name arg)) (print-expr-helper exp t))
+                                                   (format nil (if in-abs
+                                                                 "~{~a~^ ~}"
+                                                                 "(~{~a~^ ~})")
+                                                           (map 'list (lambda (expr) (print-expr-helper expr nil)) expr))))))
+   (print (print-expr-helper expr nil))))
 
 ;;Finds all the free variables in an expression
 (defun fv(expr)
