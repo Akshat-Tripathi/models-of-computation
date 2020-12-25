@@ -29,14 +29,23 @@
 (register-constant 'or or-λ)
 (register-constant 'not not-λ)
 
-(defun replace-constants(expr)
+(defun expand-constants(expr)
   (switch-expr-restore-brkt expr
                             (let ((val (gethash expr constant-to-λ)))
                               (if val
                                 val
                                 expr))
-                            (to-λ arg (replace-constants exp))
-                            (map 'list #'replace-constants expr)))
+                            (to-λ arg (expand-constants exp))
+                            (map 'list #'expand-constants expr)))
+
+(defun collapse-constants(expr)
+  (let ((val (gethash expr λ-to-constant)))
+    (if val
+      val
+      (switch-expr-restore-brkt expr
+                                expr
+                                (to-λ arg (collapse-constants exp))
+                                (map 'list #'collapse-constants expr)))))
 
 (defun read-expr-from-string(str)
   (read-from-string

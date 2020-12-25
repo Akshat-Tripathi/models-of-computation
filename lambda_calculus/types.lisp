@@ -41,10 +41,10 @@
 
 ;;Booleans
 (defconstant true
-  (args-to-λ '(x y) '(x)))
+  (args-to-λ '(x y) 'x))
 
 (defconstant false
-  (args-to-λ '(x y) '(y)))
+  (args-to-λ '(x y) 'y))
 
 (defconstant if-λ
   (args-to-λ '(b x y) '(b x y)))
