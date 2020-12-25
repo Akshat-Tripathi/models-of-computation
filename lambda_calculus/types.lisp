@@ -34,7 +34,7 @@
 
 (defun encode-nat(n)
   (labels ((f(n nat)
-             (if (zerop n)
+             (if (<= n 0)
                nat
                (f (- n 1) (to-app 'f nat)))))
           (args-to-λ '(f z) (f n 'z))))
