@@ -30,11 +30,8 @@
 (defun normal-order(expr)
   (try-reduce expr
               normal-order
-              (switch-expr expr
+              (switch-expr-dbrkt expr
                            expr
                            (to-λ arg (normal-order exp))
                            (let ((mapped (map 'list #'normal-order expr)))
                              (try-reduce mapped normal-order mapped)))))
-
-(defparameter complex-expr
-  '(((λ x \. λ y \. x y x) t u) ((λ x \. λ y \. λ z \. x ((λ x \. x x) y)) v ((λ x \. x y) w))))

@@ -22,24 +22,28 @@
 (defun to-app(&rest exprs)
   exprs)
 
-;;Use this to pattern match expressions
 (defmacro switch-expr(expr var abs app)
+  `(match expr
+         ((cons 'λ _) (multiple-value-bind (arg exp) (from-λ expr) ,abs))
+         ((cons _ _) ,app)
+         (_ ,var)))
+
+
+;;Use this to pattern match expressions and remove brackets
+(defmacro switch-expr-dbrkt(expr var abs app)
  (defun debracket(expr)
    (if (and (listp expr) (null (cdr expr)))
      (debracket (car expr))
      expr))
  `(let ((expr (debracket ,expr)))
-   (match expr
-          ((cons 'λ _) (multiple-value-bind (arg exp) (from-λ expr) ,abs))
-          ((cons _ _) ,app)
-          (_ ,var))))
+   (switch-expr expr ,var ,abs ,app)))
 
 (defun print-expr (expr)
   (labels
    ((print-expr-helper(expr in-abs)
                       (if (and (listp expr) (null (cdr expr)))
                         (format nil "(~a)" (print-expr-helper (car expr) in-abs))
-                        (switch-expr expr
+                        (switch-expr-dbrkt expr
                                      (format nil "~a" (string-downcase (symbol-name expr)))
                                      (format nil (if in-abs
                                                    "(λ~a.~a)"
@@ -53,7 +57,7 @@
 
 ;;Finds all the free variables in an expression
 (defun fv(expr)
-  (let ((free (switch-expr expr
+  (let ((free (switch-expr-dbrkt expr
                expr
                (remove arg (fv exp))
                (reduce #'append (remove-duplicates (map 'list #'fv expr))))))
@@ -69,7 +73,7 @@
   (car (remove-if (lambda (s) (member s taken-symbols)) symbol-bank)))
 
 (defun sub(expr old new)
-  (switch-expr expr
+  (switch-expr-dbrkt expr
                (if (eq old expr) new expr)
                (if (eq old arg)
                  expr

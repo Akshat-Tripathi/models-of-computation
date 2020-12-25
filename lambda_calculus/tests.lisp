@@ -1,7 +1,7 @@
 (load "core.lisp" :external-format :utf-8)
 
 (defun parse(expr)
-  (switch-expr expr
+  (switch-expr-dbrkt expr
                (progn
                 (prin1 "var")
                 (terpri))
