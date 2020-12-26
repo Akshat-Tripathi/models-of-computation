@@ -6,12 +6,13 @@
 (load "engine.lisp" :external-format :utf-8)
 ;;Register constants
 (defparameter constant-to-λ (make-hash-table))
-(defparameter λ-to-constant (make-hash-table))
+(defparameter λ-to-constant (make-hash-table :test 'equal))
 
 (defun register-constant(constant λ)
- (setf (gethash λ λ-to-constant) constant)
  (let ((lam (setf (gethash constant constant-to-λ) λ)))
-   (remhash lam λ-to-constant)))
+   (remhash lam λ-to-constant))
+ (setf (gethash λ λ-to-constant) constant))
+
 
 (register-constant 'pair pair)
 (register-constant 'fst fst)
@@ -46,13 +47,16 @@
 
 ;;For each expression, check if it corresponds to a constant, if so replace it
 (defun collapse-constants(expr)
-  (let ((val (gethash expr λ-to-constant)))
-    (if val
-      val
-      (switch-expr-restore-brkt expr
-                                expr
-                                (to-λ arg (collapse-constants exp))
-                                (map 'list #'collapse-constants expr)))))
+  (switch-expr-restore-brkt expr
+                     expr
+                     (let ((val (gethash expr λ-to-constant)))
+                       (if val
+                         val
+                         (to-λ arg (collapse-constants exp))))
+                     (let ((val (gethash expr λ-to-constant)))
+                       (if val
+                         val
+                         (map 'list #'collapse-constants expr)))))
 
 ;;Syntactic sugar for multiple arguments in a λ, also replaces numbers with the appropriate lambdas
 (defun expand-λ(expr)
@@ -82,9 +86,10 @@
 
 (defparameter files '())
 (defun load-λ(file-name)
-  (setf files (cons file-name files))
-  (let ((text (uiop:read-file-lines "file.txt")))
-    (map nil #'process-cmd (split ";" text))))
+  (if (not (member file-name files :test #'string-equal))
+    (setf files (cons file-name files)))
+  (let ((text (join "" (uiop:read-file-lines file-name))))
+    (map nil #'process-cmd (remove-if #'empty? (split ";" text)))))
 
 ;;Decides what to do for some input
 ;;Commands:
@@ -95,6 +100,7 @@
 ;; :s <var> <expr> - sets a variable (can override an existing variable)
 ;; <expr> - evaluates the expression
 (defun process-cmd(str)
+ ; (print str)
  (cond ((starts-with? ":l" str) (load-λ (string-left-trim ":l " str)))
       ((starts-with? ":r" str) (progn (map 'list #'load-λ files) t))
       ((starts-with? ":q" str) (quit))
