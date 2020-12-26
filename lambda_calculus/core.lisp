@@ -59,7 +59,8 @@
                                                                  "~{~a~^ ~}"
                                                                  "(~{~a~^ ~})")
                                                            (map 'list (lambda (expr) (print-expr-helper expr nil)) expr))))))
-   (print (print-expr-helper expr nil))))
+   (format t "~a~%" (print-expr-helper expr nil))
+   (finish-output t)))
 
 ;;Finds all the free variables in an expression
 (defun fv(expr)

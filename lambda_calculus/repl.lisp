@@ -13,7 +13,6 @@
    (remhash lam λ-to-constant))
  (setf (gethash λ λ-to-constant) constant))
 
-
 (register-constant 'pair pair)
 (register-constant 'fst fst)
 (register-constant 'snd snd)
@@ -100,13 +99,22 @@
 ;; :s <var> <expr> - sets a variable (can override an existing variable)
 ;; <expr> - evaluates the expression
 (defun process-cmd(str)
- ; (print str)
- (cond ((starts-with? ":l" str) (load-λ (string-left-trim ":l " str)))
+ (if (empty? str)
+     nil
+     (cond ((starts-with? ":l" str) (load-λ (string-left-trim ":l " str)))
       ((starts-with? ":r" str) (progn (map 'list #'load-λ files) t))
-      ((starts-with? ":q" str) (quit))
+      ((starts-with? ":q" str) (exit))
       ((starts-with? ":e" str) (print-expr (normal-order (read-expr-from-string (string-left-trim ":e " str)))))
       ((starts-with? ":s" str) (let* ((tokens (split " " (string-left-trim ":s " str)))
                                       (var (intern (car tokens)))
                                       (expr (join " " (cdr tokens))))
                                  (register-constant var (normal-order (read-expr-from-string expr)))))
-      (t (print-expr (collapse-constants (normal-order (read-expr-from-string str)))))))
+      (t (print-expr (collapse-constants (normal-order (read-expr-from-string str))))))))
+
+(format t "Hello there - General Kenobi~%")
+(force-output t)
+
+(loop
+ (format t ">> ")
+ (force-output t)
+ (process-cmd (read-line)))
