@@ -17,7 +17,7 @@
 (register-constant 'fst fst)
 (register-constant 'snd snd)
 
-(register-constant 'nil nil-λ)
+(register-constant 'null nil-λ)
 (register-constant 'cons cons-λ)
 
 (register-constant 'succ succ)

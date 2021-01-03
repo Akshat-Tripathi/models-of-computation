@@ -14,7 +14,7 @@
 
 ;;Lists
 (defconstant nil-λ
-  (args-to-λ '(c n) '(n)))
+  (args-to-λ '(c n) 'n))
 
 (defconstant cons-λ
   (args-to-λ '(e l c n) '(c e l)))
